@@ -178,8 +178,17 @@ class MatMul(Func):
         x1, x2 = np.split(x, [self.l * self.m])
         x1, x2 = x1.reshape(self.l, self.m), x2.reshape(self.m, self.n)
         lm = self.l * self.m
-        grad[:, lm:] = np.kron(x1, np.eye(self.n))
-        grad[:, :lm] = np.kron(np.eye(self.l), x2.T)
+        mn = self.m * self.n
+        ln = self.l * self.n
+        a = x1
+        b = np.eye(self.n)
+        c = np.eye(self.l)
+        d = x2.T
+        # https://stackoverflow.com/questions/56067643/speeding-up-kronecker-products-numpy
+        g1 = (a[:, None, :, None] * b[None, :, None, :]).reshape(ln, mn)
+        g2 = (c[:, None, :, None] * d[None, :, None, :]).reshape(ln, lm)
+        grad[:, lm:] = g1
+        grad[:, :lm] = g2
         return grad
 
     def grad_timeit(self, x) -> ndarray:

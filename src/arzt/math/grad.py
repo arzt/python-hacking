@@ -174,21 +174,19 @@ class MatMul(Func):
         return y.ravel()
 
     def grad(self, x) -> ndarray:
+        l = self.l
+        m = self.m
+        n = self.n
         grad = np.zeros([self.shape[1], self.shape[0]])
-        x1, x2 = np.split(x, [self.l * self.m])
-        x1, x2 = x1.reshape(self.l, self.m), x2.reshape(self.m, self.n)
-        lm = self.l * self.m
-        mn = self.m * self.n
-        ln = self.l * self.n
-        a = x1
-        b = np.eye(self.n)
-        c = np.eye(self.l)
-        d = x2.T
+        x1, x2 = np.split(x, [l * m])
+        a, d = x1.reshape(l, m), x2.reshape(m, n).T
+        b = np.eye(n)
+        c = np.eye(l)
         # https://stackoverflow.com/questions/56067643/speeding-up-kronecker-products-numpy
-        g1 = (a[:, None, :, None] * b[None, :, None, :]).reshape(ln, mn)
-        g2 = (c[:, None, :, None] * d[None, :, None, :]).reshape(ln, lm)
-        grad[:, lm:] = g1
-        grad[:, :lm] = g2
+        g1 = a[:, None, :, None] * b[None, :, None, :]
+        g2 = c[:, None, :, None] * d[None, :, None, :]
+        grad[:, l * m :] = g1.reshape(l * n, m * n)
+        grad[:, : l * m] = g2.reshape(l * n, l * m)
         return grad
 
     def grad_timeit(self, x) -> ndarray:

@@ -1,8 +1,6 @@
-from timeit import timeit
-
 import numpy
 import numpy as np
-from numpy import array, ndarray, hstack, diagflat, allclose
+from numpy import array, ndarray, hstack, diagflat
 from numpy.testing import assert_allclose
 
 
@@ -176,7 +174,16 @@ class MatMul(Func):
         return y.ravel()
 
     def grad(self, x) -> ndarray:
-        grad = super().grad(x)
+        grad = np.zeros([self.shape[1], self.shape[0]])
+        x1, x2 = np.split(x, [self.l * self.m])
+        x1, x2 = x1.reshape(self.l, self.m), x2.reshape(self.m, self.n)
+        lm = self.l * self.m
+        grad[:, lm:] = np.kron(x1, np.eye(self.n))
+        grad[:, :lm] = np.kron(np.eye(self.l), x2.T)
+        return grad
+
+    def grad_timeit(self, x) -> ndarray:
+        grad = np.zeros([self.shape[1], self.shape[0]])
         x1, x2 = np.split(x, [self.l * self.m])
         x1, x2 = x1.reshape(4, 3), x2.reshape(3, 5)
         n = self.n

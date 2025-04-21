@@ -1,9 +1,9 @@
 import unittest
 
-import numpy as np
-from numpy import array, hstack
-from numpy.testing import assert_almost_equal
 import numpy
+import numpy as np
+from numpy import array
+from numpy.testing import assert_almost_equal
 
 from arzt.math.grad import Identity, Const, Mul, Chain, Concat, Sin, MatMul
 
@@ -76,9 +76,6 @@ class TestGrad(unittest.TestCase):
         y = mul.forward(x)
 
         assert_almost_equal(y, y_exp)
-        x1, x2 = np.split(x, [mul.l * mul.m])
-        x1, x2 = x1.reshape(4, 3), x2.reshape(3, 5)
-        emp_grad = mul.emp_grad(x)
         mul.assert_grad(x)
 
 

@@ -203,3 +203,15 @@ class MatMul(Func):
         lm = l * m
         grad[:, lm:] = np.kron(x1, np.eye(n))
         return grad
+
+
+class ReLU(Func):
+
+    def __init__(self, size: int):
+        super().__init__(shape=array([size, size]))
+
+    def forward(self, x: ndarray) -> ndarray:
+        return np.maximum(x, 0)
+
+    def grad(self, x) -> ndarray:
+        return diagflat(x > 0)

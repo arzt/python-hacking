@@ -5,7 +5,7 @@ import numpy as np
 from numpy import array
 from numpy.testing import assert_almost_equal
 
-from arzt.math.grad import Identity, Const, Mul, Chain, Concat, Sin, MatMul
+from arzt.math.grad import Identity, Const, Mul, Chain, Concat, Sin, MatMul, ReLU
 
 
 class TestGrad(unittest.TestCase):
@@ -77,6 +77,23 @@ class TestGrad(unittest.TestCase):
 
         assert_almost_equal(y, y_exp)
         mul.assert_grad(x)
+
+    def test_relu(self):
+        x = array([4, -4, 5, -0.01, -1])
+        relu = ReLU(5)
+        y = relu.forward(x)
+        y_exp = array([4, 0, 5, 0, 0])
+        assert_almost_equal(y, y_exp)
+        relu.assert_grad(x)
+
+    def test_net(self):
+        x = np.random.randn(1, 5)
+        w1 = np.random.randn(5, 4)
+        y_exp = (x @ w1).ravel()
+        concat1 = Concat(Const(x.ravel()), Identity(20))
+        mul_1 = Chain(concat1, MatMul(1, 5, 4))
+        y = mul_1(w1.ravel())
+        assert_almost_equal(y_exp, y)
 
 
 if __name__ == "__main__":
